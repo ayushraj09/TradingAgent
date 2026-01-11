@@ -428,6 +428,7 @@ python test_setup.py
 - **PPO Paper**: [Proximal Policy Optimization Algorithms](https://arxiv.org/abs/1707.06347)
 - **SHAP Paper**: [A Unified Approach to Interpreting Model Predictions](https://arxiv.org/abs/1705.07874)
 - **FinRL**: [FinRL Library](https://github.com/AI4Finance-Foundation/FinRL)
+- **FinRL: A Deep Reinforcement Learning Library for Automated Stock Trading in Quantitative Finance**: [NeurIPS, FinRL Paper](https://arxiv.org/abs/2011.09607)
 - **Alpaca**: [Alpaca API Docs](https://alpaca.markets/docs/)
 
 ---
