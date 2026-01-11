@@ -1,0 +1,37 @@
+# Environment variables with API keys
+.env
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Generated data files
+buffer.csv
+ou.csv
+after_clean_data.csv
+train_data.csv
+trade_data.csv
+production_paper_trading_data.csv
+
+# Output directories
+production_paper_trading_results/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
