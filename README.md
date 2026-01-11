@@ -115,7 +115,7 @@ A production-ready paper trading system using **PPO (Proximal Policy Optimizatio
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/TradingAgent.git
+git clone https://github.com/ayushraj09/TradingAgent.git
 cd TradingAgent
 
 # Create virtual environment
@@ -154,11 +154,6 @@ python main.py
 **Without explanations (faster):**
 ```bash
 python main.py --no-explain
-```
-
-**Verify setup:**
-```bash
-python test_setup.py
 ```
 
 **Custom configuration:**
