@@ -8,8 +8,13 @@ from datetime import datetime, timedelta
 from finrl.meta.data_processors.processor_alpaca import AlpacaProcessor
 
 
-def init_data_csv(csv_path, tech_indicators):
+def init_data_csv(csv_path, tech_indicators=None):
     """Initialize CSV file for data collection."""
+    # Use INDICATORS from config if not provided
+    if tech_indicators is None:
+        from finrl.config import INDICATORS
+        tech_indicators = INDICATORS
+        
     if not Path(csv_path).exists():
         # Create with all required columns
         columns = ['date', 'tic', 'open', 'high', 'low', 'close', 'volume'] + tech_indicators
@@ -21,11 +26,13 @@ def init_data_csv(csv_path, tech_indicators):
         print(f"✓ CSV exists: {csv_path} ({len(existing_df):,} records)")
 
 
-def fetch_historical_data_to_csv(alpaca_api, csv_path, config, required_days=2):
+def fetch_historical_data_to_csv(alpaca_api, csv_path, required_days=2):
     """
     Fetch historical 1-min data from Alpaca and populate CSV.
     Uses last 2 completed trading days to avoid API restrictions.
     """
+    from finrl.config import INDICATORS
+    
     print(f"\n📥 Fetching historical data for {required_days} trading days...")
     
     # Check if CSV already has sufficient data
@@ -48,6 +55,10 @@ def fetch_historical_data_to_csv(alpaca_api, csv_path, config, required_days=2):
         start_date = end_date - timedelta(days=2)  # 2 days before
         
         print(f"  Download range: {start_date} to {end_date}")
+        
+        # Get config for AlpacaProcessor
+        from config import load_config
+        config = load_config(enable_explanations=False)
         
         # Initialize Alpaca processor
         alpaca_processor = AlpacaProcessor(
@@ -85,7 +96,7 @@ def fetch_historical_data_to_csv(alpaca_api, csv_path, config, required_days=2):
         # Clean and add indicators
         df_clean = alpaca_processor.clean_data(df_raw)
         df_clean = df_clean.sort_values(by=['timestamp', 'tic']).reset_index(drop=True)
-        df_clean = alpaca_processor.add_technical_indicator(df_clean, config['TECH_INDICATORS'])
+        df_clean = alpaca_processor.add_technical_indicator(df_clean, INDICATORS)
         df_clean = df_clean.ffill().bfill()
         
         print(f"  ✓ Processed: {len(df_clean):,} records")
@@ -98,7 +109,7 @@ def fetch_historical_data_to_csv(alpaca_api, csv_path, config, required_days=2):
         df_clean.rename(columns={'timestamp': 'date'}, inplace=True)
         
         # Save to CSV
-        required_cols = ['date', 'tic', 'open', 'high', 'low', 'close', 'volume'] + config['TECH_INDICATORS']
+        required_cols = ['date', 'tic', 'open', 'high', 'low', 'close', 'volume'] + INDICATORS
         df_clean = df_clean[required_cols]
         df_clean.to_csv(csv_path, index=False)
         
@@ -111,17 +122,22 @@ def fetch_historical_data_to_csv(alpaca_api, csv_path, config, required_days=2):
         traceback.print_exc()
 
 
-def append_latest_data_to_csv(alpaca_processor, csv_path, config):
+def append_latest_data_to_csv(alpaca_processor, csv_path):
     """
     Fetch latest 1-min data from Alpaca and append to CSV.
     Returns: DataFrame of new data (or None if failed/duplicate)
     """
+    from finrl.config import INDICATORS
+    from config import load_config
+    
+    config = load_config(enable_explanations=False)
+    
     try:
         # Fetch latest data with technical indicators
         price, tech, turbulence = alpaca_processor.fetch_latest_data(
             ticker_list=config['TICKERS'],
             time_interval='1Min',
-            tech_indicator_list=config['TECH_INDICATORS']
+            tech_indicator_list=INDICATORS
         )
         
         if price is None:
@@ -145,8 +161,8 @@ def append_latest_data_to_csv(alpaca_processor, csv_path, config):
             }
             
             # Add tech indicators
-            for j, tech_name in enumerate(config['TECH_INDICATORS']):
-                idx = i * len(config['TECH_INDICATORS']) + j
+            for j, tech_name in enumerate(INDICATORS):
+                idx = i * len(INDICATORS) + j
                 record[tech_name] = tech[idx] if idx < len(tech) else 0
             
             records.append(record)

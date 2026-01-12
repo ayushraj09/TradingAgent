@@ -36,7 +36,7 @@ def submit_order(alpaca, qty, stock, side, resp):
         resp.append(True)
 
 
-def get_state_from_alpaca(alpaca_processor, config):
+def get_state_from_alpaca(alpaca_processor, config=None):
     """
     Get current state from Alpaca (Production format: 301 features).
     
@@ -46,6 +46,11 @@ def get_state_from_alpaca(alpaca_processor, config):
     Returns:
         state, price, stocks, cash, turbulence, turbulence_bool, tech
     """
+    # Load config if not provided
+    if config is None:
+        from config import load_config
+        config = load_config(enable_explanations=False)
+    
     # Fetch latest data with technical indicators
     price, tech, turbulence = alpaca_processor.fetch_latest_data(
         ticker_list=config['TICKERS'],
@@ -101,6 +106,12 @@ def create_env(df, config):
     state_space = 1 + 2 * config['STOCK_DIM'] + len(config['TECH_INDICATORS']) * config['STOCK_DIM']
     
     df_indexed = df.copy()
+    
+    # Clean NaN/Inf values
+    df_indexed = df_indexed.replace([np.inf, -np.inf], np.nan)
+    df_indexed = df_indexed.ffill().bfill()
+    df_indexed = df_indexed.fillna(0)
+    
     df_indexed = df_indexed.sort_values(['day', 'tic'])
     df_indexed = df_indexed.set_index('day')
     
@@ -155,12 +166,21 @@ def finetune_model_with_validation(model, csv_path, config):
         print("✗ Insufficient data for fine-tuning")
         return model, None
     
+    # Check for NaN/Inf values
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    if df[numeric_cols].isna().any().any():
+        print("⚠️  Cleaning NaN values in data...")
+        df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
+        df[numeric_cols] = df[numeric_cols].ffill().bfill()
+        df[numeric_cols] = df[numeric_cols].fillna(0)
+    
     # Get unique dates
     unique_dates = sorted(df['date'].unique())
     
-    # Need at least 10 timestamps for meaningful split
-    if len(unique_dates) < 10:
-        print(f"✗ Need at least 10 timestamps (have {len(unique_dates)})")
+    # Need at least 20 timestamps for meaningful split (4 for validation)
+    if len(unique_dates) < 20:
+        print(f"✗ Need at least 20 timestamps for fine-tuning (have {len(unique_dates)})")
+        print(f"   Collect more data before fine-tuning")
         return model, None
     
     # Split train/validation
@@ -184,8 +204,16 @@ def finetune_model_with_validation(model, csv_path, config):
     
     # Evaluate original
     print(f"  Evaluating original model...")
-    original_score = evaluate_model_on_df(model, val_df, config)
-    print(f"  Original score: {original_score:.2f}")
+    try:
+        original_score = evaluate_model_on_df(model, val_df, config)
+        print(f"  Original score: {original_score:.2f}")
+    except (ValueError, RuntimeError) as e:
+        if 'nan' in str(e).lower():
+            print(f"✗ Data contains NaN/Inf values - skipping fine-tuning")
+            print(f"   Error: {str(e)[:100]}...")
+            return model, None
+        else:
+            raise
     
     # Clone model
     with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:

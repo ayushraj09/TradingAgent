@@ -70,9 +70,7 @@ def load_config(enable_explanations=True):
         
         # Trading timing
         'TIME_INTERVAL_MIN': 1,  # Trade every minute
-        'INITIAL_TRADE_DELAY_MIN': 15,  # Wait 15 min after market open
-        
-        # Fine-tuning parameters
+    'INITIAL_TRADE_DELAY_MIN': 1,  # Wait 1 min after market open (instant for testing)
         'FINETUNE_INTERVAL_HOURS': 2,
         'FINETUNE_LOOKBACK_HOURS': 48,
         'FINETUNE_LR': 1e-5,
@@ -86,10 +84,10 @@ def load_config(enable_explanations=True):
         # Explainability
         'ENABLE_EXPLANATIONS': enable_explanations,
         'SHAP_BACKGROUND_SAMPLES': 500,
-        
-        # Model dimensions
-        'state_dim': state_dim,
-        'action_dim': action_dim,
+    
+    # State/action dimensions
+    'state_dim': state_dim,
+    'action_dim': action_dim,
     }
     
     return CONFIG
@@ -98,15 +96,5 @@ def load_config(enable_explanations=True):
 def print_config(config):
     """Print configuration summary."""
     print("\n📋 CONFIGURATION")
-    print("="*80)
-    print(f"Model: {config['TRAINED_MODEL']}")
-    print(f"Output: {config['OUTPUT_DIR']}")
-    print(f"Data CSV: {config['DATA_CSV']}")
-    print(f"State dim: {config['state_dim']}, Action dim: {config['action_dim']}")
-    print(f"Initial cash: ${config['INITIAL_CASH']:,}")
-    print(f"Tickers: {len(config['TICKERS'])}")
-    print(f"Technical indicators: {len(config['TECH_INDICATORS'])}")
-    print(f"Fine-tune: Every {config['FINETUNE_INTERVAL_HOURS']}h")
-    print(f"Lookback: {config['FINETUNE_LOOKBACK_HOURS']}h")
     print(f"Explainability: {config['ENABLE_EXPLANATIONS']}")
     print("="*80)
