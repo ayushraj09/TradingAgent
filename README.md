@@ -55,14 +55,11 @@ A production-ready paper trading system using **PPO (Proximal Policy Optimizatio
 
 ![Algorithm Comparison](figs/output.png)
 
-**PPO vs Other RL Algorithms (Same Period):**
-- **PPO (this system)**: $1.175M (+17.5%) - Best performer
-- SAC: $1.130M (+13.0%)
-- DJI Index: $1.090M (+9.0%)
-- MVO: $1.075M (+7.5%)
-- TD3: $1.070M (+7.0%)
-
-**PPO outperforms all other algorithms by 4.5-10.5%**
+**PPO vs Other RL Algorithms - No finetuning (3 month backtesting):**
+- **PPO (this system)**: $1.150M (+15.1%) - Best performer
+- TD3: $1.092M (+9.3%)
+- DJI Index: $1.086M (+8.6%)
+- MVO: $1.076M (+7.6%)
 
 ### Fine-Tuning Impact
 
@@ -80,7 +77,7 @@ A production-ready paper trading system using **PPO (Proximal Policy Optimizatio
 ## Key Features
 
 **PPO Agent**
-- State space: 301 features (cash + prices + holdings + 240 technical indicators)
+- State space: 301 features (cash + prices + holdings + 8 technical indicators × 30 stocks)
 - Action space: 30 continuous actions (one per stock, range [-1, +1])
 - Trained model with continuous learning
 
