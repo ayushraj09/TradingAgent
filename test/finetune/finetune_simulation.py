@@ -9,9 +9,6 @@ Runs production trading simulation with fine-tuning every 2 hours.
 
 Usage:
     python finetune_simulation.py
-
-Author: FinRL Team
-Date: 2025-12-05
 """
 
 import sys
