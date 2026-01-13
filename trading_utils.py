@@ -107,10 +107,38 @@ def create_env(df, config):
     
     df_indexed = df.copy()
     
-    # Clean NaN/Inf values
+    # Validate critical columns (price data)
+    price_cols = ['open', 'high', 'low', 'close']
+    for col in price_cols:
+        if col in df_indexed.columns:
+            # Check for zero or negative prices
+            invalid_prices = (df_indexed[col] <= 0) | df_indexed[col].isna()
+            if invalid_prices.any():
+                print(f"⚠️  Warning: Found {invalid_prices.sum()} invalid prices in '{col}', forward filling...")
+                # Forward fill from last valid value
+                df_indexed[col] = df_indexed.groupby('tic')[col].transform(
+                    lambda x: x.replace(0, np.nan).ffill().bfill()
+                )
+                # If still zero, use mean price for that ticker
+                still_invalid = (df_indexed[col] <= 0) | df_indexed[col].isna()
+                if still_invalid.any():
+                    ticker_means = df_indexed.groupby('tic')[col].transform(
+                        lambda x: x[x > 0].mean() if (x > 0).any() else 100.0
+                    )
+                    df_indexed.loc[still_invalid, col] = ticker_means[still_invalid]
+    
+    # Clean NaN/Inf values in other columns
     df_indexed = df_indexed.replace([np.inf, -np.inf], np.nan)
     df_indexed = df_indexed.ffill().bfill()
     df_indexed = df_indexed.fillna(0)
+    
+    # Final validation - ensure no zeros in price columns
+    for col in price_cols:
+        if col in df_indexed.columns:
+            if (df_indexed[col] <= 0).any():
+                print(f"✗ Critical: Still have zero prices in '{col}' after cleaning")
+                # Use a default price as last resort
+                df_indexed.loc[df_indexed[col] <= 0, col] = 100.0
     
     df_indexed = df_indexed.sort_values(['day', 'tic'])
     df_indexed = df_indexed.set_index('day')
@@ -162,8 +190,9 @@ def finetune_model_with_validation(model, csv_path, config):
     # Load data
     df = load_recent_data_from_csv(csv_path, config, hours=config['FINETUNE_LOOKBACK_HOURS'])
     
-    if df is None or len(df) < 100:
-        print("✗ Insufficient data for fine-tuning")
+    if df is None or len(df) < 500:  # Need substantial data for quality fine-tuning
+        print(f"✗ Insufficient data for fine-tuning (have {len(df) if df is not None else 0} rows, need 500+)")
+        print(f"   Continue trading - will fine-tune when more data is available")
         return model, None
     
     # Check for NaN/Inf values
@@ -173,6 +202,19 @@ def finetune_model_with_validation(model, csv_path, config):
         df[numeric_cols] = df[numeric_cols].replace([np.inf, -np.inf], np.nan)
         df[numeric_cols] = df[numeric_cols].ffill().bfill()
         df[numeric_cols] = df[numeric_cols].fillna(0)
+    
+    # Critical: Check for zero prices (would cause division by zero)
+    price_cols = ['open', 'high', 'low', 'close']
+    for col in price_cols:
+        if col in df.columns:
+            zero_prices = (df[col] == 0).sum()
+            if zero_prices > 0:
+                print(f"⚠️  Found {zero_prices} zero prices in '{col}' - data quality issue")
+                # Check if it's too much bad data
+                if zero_prices > len(df) * 0.1:  # More than 10% bad data
+                    print(f"✗ Too much bad data ({zero_prices}/{len(df)} = {zero_prices/len(df)*100:.1f}%)")
+                    print(f"   Skipping fine-tuning - collect more quality data first")
+                    return model, None
     
     # Get unique dates
     unique_dates = sorted(df['date'].unique())
