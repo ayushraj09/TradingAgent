@@ -21,7 +21,7 @@ A production-ready paper trading system using **PPO (Proximal Policy Optimizatio
 **Portfolio Performance:**
 - Initial Capital: $999,085
 - Final Value: $1,223,734
-- **Total Return: 22.56%**
+- **Total Return: 22.5%**
 - **Sharpe Ratio: 2.318**
 - Peak Portfolio Value: $1.26M
 - Maximum Drawdown: -6.05%
@@ -43,7 +43,7 @@ A production-ready paper trading system using **PPO (Proximal Policy Optimizatio
 
 **9-Panel Performance Dashboard:**
 1. **Portfolio Value**: Grew from $1M to $1.26M peak, ended at $1.22M
-2. **Cumulative Returns**: Peaked at 27%, closed at 22.56%
+2. **Cumulative Returns**: Peaked at 27%, closed at 22.5%
 3. **Drawdown**: Controlled risk with max -6% drawdown
 4. **Daily Returns**: Normal distribution centered at 0
 5. **Cash vs Holdings**: Maintained ~$1.2M in positions
@@ -188,8 +188,8 @@ python main.py --interval 5 --finetune-interval 4 --output my_results/
 ```
 Top 5 Features:
 1. AAPL_macd: 0.34 (momentum indicator)
-2. MSFT_rsi: 0.28 (overbought/oversold)
-3. JPM_cci: -0.21 (cyclical indicator)
+2. MSFT_rsi_30: 0.28 (overbought/oversold)
+3. JPM_cci_30: -0.21 (cyclical indicator)
 ...
 ```
 
@@ -240,13 +240,14 @@ python main.py --model my_model.zip --output results_jan11/
 
 ### Technical Indicators (8 per stock)
 
-- **MACD** - Moving Average Convergence Divergence
-- **RSI** - Relative Strength Index  
-- **CCI** - Commodity Channel Index
-- **DX** - Directional Index
-- **Close_30_sma** - 30-day Simple Moving Average
-- **Close_60_sma** - 60-day Simple Moving Average
-- **Plus 2 more** from FinRL INDICATORS
+- **macd** - Moving Average Convergence Divergence
+- **boll_ub** - Bollinger Upper Band
+- **boll_lb** - Bollinger Lower Band
+- **rsi_30** - 30-period Relative Strength Index
+- **cci_30** - 30-period Commodity Channel Index
+- **dx_30** - 30-period Directional Movement Index
+- **close_30_sma** - 30-period Simple Moving Average
+- **close_60_sma** - 60-period Simple Moving Average
 
 Total: 8 indicators × 30 stocks = **240 technical indicator features**
 
@@ -273,6 +274,19 @@ FINETUNE_LR = 1e-5                 # Fine-tuning learning rate
 FINETUNE_STEPS = 2000              # Training steps
 ROLLBACK_THRESHOLD = 0.95          # Min performance to accept
 ```
+
+### Training & Testing Date Ranges
+
+**Training Period**: July 1, 2024 - July 30, 2025 (13 months)
+- Used for initial PPO model training
+- Covers diverse market conditions across multiple seasons
+- Provides robust foundation for the trading agent
+
+**Testing/Evaluation Period**: August 1, 2025 - November 5, 2025 (3+ months)  
+- Live paper trading evaluation period
+- Real-time performance validation
+- Auto fine-tuning active during this period
+- Results: 22.5% total return with 2.318 Sharpe ratio
 
 ---
 
@@ -403,7 +417,7 @@ python test_setup.py
 - Stable training (doesn't diverge)
 - Sample efficient (learns from limited data)
 - Works well with continuous action spaces
-- **Proven performance**: 22.56% return with 2.318 Sharpe ratio
+- **Proven performance**: 22.5% return with 2.318 Sharpe ratio
 
 **Fine-Tuning Every 2 Hours:**
 - Adapts to recent market regime changes
