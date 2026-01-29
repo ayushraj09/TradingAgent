@@ -19,7 +19,7 @@ A production-ready paper trading system using **PPO (Proximal Policy Optimizatio
 ### Performance Metrics (Aug-Nov 2025)
 
 **Portfolio Performance:**
-- Initial Capital: $999,085
+- Initial Capital: $1,000,000
 - Final Value: $1,223,734
 - **Total Return: 22.5%**
 - **Sharpe Ratio: 2.318**
