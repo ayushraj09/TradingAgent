@@ -4,15 +4,18 @@ A production-ready paper trading system using **PPO (Proximal Policy Optimizatio
 
 ## What This Does
 
-**Core Algorithm**: PPO-based Deep Reinforcement Learning agent trained on DOW 30 stocks
+**Core Algorithm**: PPO-based Deep Reinforcement Learning agent trained on 30 US stocks
 
-**Explainability**: SHAP and LIME provide feature importance and trade explanations (optional)
+**Explainability**: SHAP and LIME provide feature importance and trade explanations
 
 **Auto Fine-Tuning**: Model retrains every 2 hours using recent market data with validation-based rollback
 
 **Trading**: Real-time 1-minute interval trading via Alpaca API with turbulence-based risk management
 
 ---
+
+## Overall workflow
+![Workflow](figs/trading-agent.jpg)
 
 ## Results
 
